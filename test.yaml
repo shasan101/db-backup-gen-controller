@@ -1,0 +1,36 @@
+---
+apiVersion: db.shasan.com/v1
+kind: DbWatcher
+metadata:
+  name: test-watcher
+  namespace: db-backup-gen-system
+spec:
+  DbSpec:
+    Name: "my_database"
+    ConnectionString: "postgres://user:pass@db:5432/mydb"
+  CronExpression: "0 0 0 0"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: test-watcher
+  namespace: db-backup-gen-system
+  labels:
+    app: test-watcher
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: test-watcher
+  template:
+    metadata:
+      labels:
+        app: test-watcher
+    spec:
+      containers:
+        - name: nginx
+          image: nginx:latest
+          ports:
+            - containerPort: 80
+---
+

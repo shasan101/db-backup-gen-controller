@@ -1,0 +1,9 @@
+apiVersion: db.shasan.com/v1
+kind: DbWatcher
+metadata:
+  labels:
+    app.kubernetes.io/name: db-backup-gen
+    app.kubernetes.io/managed-by: kustomize
+  name: dbwatcher-sample
+spec:
+  # TODO(user): Add fields here

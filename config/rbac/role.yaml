@@ -1,0 +1,40 @@
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: manager-role
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - pods
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - db.shasan.com
+  resources:
+  - dbwatchers
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - db.shasan.com
+  resources:
+  - dbwatchers/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - db.shasan.com
+  resources:
+  - dbwatchers/status
+  verbs:
+  - get
+  - patch
+  - update
