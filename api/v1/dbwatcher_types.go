@@ -23,18 +23,20 @@ import (
 // EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
 // NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
 
-type DbSpecs struct {
-	Name             string `json:"Name,omitempty"`
-	ConnectionString string `json:"ConnectionString,omitempty"`
-}
-
 // DbWatcherSpec defines the desired state of DbWatcher.
 type DbWatcherSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
 
-	DbSpec         DbSpecs `json:"DbSpec,omitempty"`
-	CronExpression string  `json:"CronExpression,omitempty"`
+	Name           string `json:"Name,omitempty"`
+	Host           string `json:"Host,omitempty"`
+	Port           string `json:"Port,omitempty"`
+	DatabaseName   string `json:"DatabaseName,omitempty"`
+	Username       string `json:"Username,omitempty"`
+	Password       string `json:"Password,omitempty"`
+	BackupDestType string `json:"BackupDestType,omitempty"`
+	BackupDestPath string `json:"BackupDestPath,omitempty"`
+	BackupDestName string `json:"BackupDestName,omitempty"`
 }
 
 // DbWatcherStatus defines the observed state of DbWatcher.

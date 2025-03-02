@@ -5,12 +5,16 @@ metadata:
   name: manager-role
 rules:
 - apiGroups:
-  - ""
+  - batch
   resources:
-  - pods
+  - jobs
   verbs:
+  - create
+  - delete
   - get
   - list
+  - patch
+  - update
   - watch
 - apiGroups:
   - db.shasan.com

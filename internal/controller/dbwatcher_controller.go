@@ -19,8 +19,10 @@ package controller
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 
 	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -29,6 +31,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
 	dbv1 "github.com/shasan101/db-backup-gen/api/v1"
+	batchv1 "k8s.io/api/batch/v1"
 )
 
 // DbWatcherReconciler reconciles a DbWatcher object
@@ -40,7 +43,10 @@ type DbWatcherReconciler struct {
 // +kubebuilder:rbac:groups=db.shasan.com,resources=dbwatchers,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=db.shasan.com,resources=dbwatchers/status,verbs=get;update;patch
 // +kubebuilder:rbac:groups=db.shasan.com,resources=dbwatchers/finalizers,verbs=update
-// +kubebuilder:rbac:groups="",resources=pods,verbs=get;list;watch
+
+// +kubebuilder:rbac:groups=batch,resources=jobs,verbs=create;get;list;watch;update;patch;delete
+
+
 
 // Reconcile is part of the main kubernetes reconciliation loop which aims to
 // move the current state of the cluster closer to the desired state.
@@ -59,21 +65,60 @@ func (r *DbWatcherReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 	if err != nil {
 		logger.Info("error occurred: " + err.Error())
 	}
-	var cronOrJob bool
-	if watcherObject.Spec.CronExpression != "" {
-		cronOrJob = true
-	}
-	if cronOrJob {
-		// deploy container as a cron
-	} else {
-		// deploy container as a job
-	}
 	marshalledObj, _ := json.Marshal(watcherObject)
 	logger.Info("deployed resource: " + string(marshalledObj))
+	r.startBackupJob(ctx, &watcherObject)
 
 	// TODO(user): your logic here
 
 	return ctrl.Result{}, nil
+}
+
+func (r *DbWatcherReconciler) startBackupJob(ctx context.Context, jobInput *dbv1.DbWatcher) {
+	logger := log.FromContext(ctx)
+	logger.Info("Creating the backup job!!!")
+
+	jobEnvVars := []corev1.EnvVar{
+		{Name: "BACKUP_SOURCE_NAME", Value: jobInput.Spec.DatabaseName},
+		{Name: "BACKUP_DB_NAME", Value: jobInput.Spec.DatabaseName},
+		{Name: "BACKUP_USERNAME", Value: jobInput.Spec.Username},
+		{Name: "BACKUP_PASSWORD", Value: jobInput.Spec.Password},
+		{Name: "BACKUP_HOST", Value: jobInput.Spec.Host},
+		{Name: "BACKUP_PORT", Value: jobInput.Spec.Port},
+		{Name: "BACKUP_DEST_TYPE", Value: jobInput.Spec.BackupDestType},
+		{Name: "BACKUP_DEST_NAME", Value: jobInput.Spec.BackupDestName},
+		{Name: "BACKUP_DEST_PATH", Value: jobInput.Spec.BackupDestPath},
+	}
+
+	jobToCreate := batchv1.Job{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: fmt.Sprintf("backup-operator-%s", jobInput.Name),
+			Namespace: "db-backup-gen-system",
+		},
+		Spec: batchv1.JobSpec{
+			Template: corev1.PodTemplateSpec{
+				Spec: corev1.PodSpec{
+					Containers: []corev1.Container{
+						{
+							Name:    "backup",
+							Image:   "db-backup:latest",
+							// Command: []string{""},
+							Env:     jobEnvVars,
+							ImagePullPolicy: corev1.PullNever,
+						},
+					},
+					RestartPolicy: corev1.RestartPolicyNever,
+				},
+			},
+		},
+	}
+
+	err := r.Client.Create(ctx, &jobToCreate)
+	if err != nil {
+		logger.Error(err, "failed to create job")
+	}
+
+	logger.Info(fmt.Sprintf("created job successfully: %v", jobInput.Name))
 }
 
 func (r *DbWatcherReconciler) HandlePodEvents(pod client.Object) []reconcile.Request {

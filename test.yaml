@@ -1,36 +1,15 @@
----
 apiVersion: db.shasan.com/v1
 kind: DbWatcher
 metadata:
-  name: test-watcher
-  namespace: db-backup-gen-system
+  name: my-db-watcher
+  namespace: default
 spec:
-  DbSpec:
-    Name: "my_database"
-    ConnectionString: "postgres://user:pass@db:5432/mydb"
-  CronExpression: "0 0 0 0"
----
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: test-watcher
-  namespace: db-backup-gen-system
-  labels:
-    app: test-watcher
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app: test-watcher
-  template:
-    metadata:
-      labels:
-        app: test-watcher
-    spec:
-      containers:
-        - name: nginx
-          image: nginx:latest
-          ports:
-            - containerPort: 80
----
-
+  Name: "mysql"
+  Host: "127.0.0.1"
+  Port: "3306"
+  DatabaseName: "mydatabase"
+  Username: "admin"
+  Password: "securepassword"
+  BackupDestType: "local"
+  BackupDestPath: "/backups"
+  BackupDestName: "db-backup-2024"

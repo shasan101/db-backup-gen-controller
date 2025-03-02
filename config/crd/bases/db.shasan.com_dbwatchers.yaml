@@ -39,15 +39,24 @@ spec:
           spec:
             description: DbWatcherSpec defines the desired state of DbWatcher.
             properties:
-              CronExpression:
+              BackupDestName:
                 type: string
-              DbSpec:
-                properties:
-                  ConnectionString:
-                    type: string
-                  Name:
-                    type: string
-                type: object
+              BackupDestPath:
+                type: string
+              BackupDestType:
+                type: string
+              DatabaseName:
+                type: string
+              Host:
+                type: string
+              Name:
+                type: string
+              Password:
+                type: string
+              Port:
+                type: string
+              Username:
+                type: string
             type: object
           status:
             description: DbWatcherStatus defines the observed state of DbWatcher.
